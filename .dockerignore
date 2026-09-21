@@ -1,0 +1,11 @@
+.git
+.github
+__pycache__
+*.pyc
+.pytest_cache
+tests
+data
+*.db
+.env
+README.md
+docker-compose.yml

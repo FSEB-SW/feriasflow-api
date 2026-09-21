@@ -1,0 +1,42 @@
+# Sobe os dois servicos do MVP (API principal + API secundaria) numa rede privada.
+#
+#   docker compose up --build
+#
+# A API secundaria e construida direto do repositorio dela no GitHub (contexto git), entao nao e
+# preciso clonar nada alem deste repositorio. Para usar um clone local da secundaria
+# (por exemplo, ao desenvolver os dois lados), exporte CALENDARIO_BUILD_CONTEXT=../feriasflow-calendario-api
+#
+#   principal  -> http://localhost:8000/docs
+#   secundaria -> http://localhost:8001/docs
+
+services:
+  calendario-api:
+    build:
+      context: ${CALENDARIO_BUILD_CONTEXT:-https://github.com/FSEB-SW/feriasflow-calendario-api.git#main}
+    image: feriasflow-calendario-api:local
+    container_name: feriasflow-calendario-api
+    ports:
+      - "8001:8000"
+    volumes:
+      - calendario_data:/app/data
+    restart: unless-stopped
+
+  feriasflow-api:
+    build:
+      context: .
+    image: feriasflow-api:local
+    container_name: feriasflow-api
+    ports:
+      - "8000:8000"
+    environment:
+      CALENDARIO_URL: http://calendario-api:8000
+    volumes:
+      - feriasflow_data:/app/data
+    depends_on:
+      calendario-api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  calendario_data:
+  feriasflow_data:
