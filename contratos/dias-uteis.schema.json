@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FSEB-SW/feriasflow-calendario-api/contratos/dias-uteis.schema.json",
+  "title": "Contrato GET /dias-uteis",
+  "description": "Contrato dirigido pelo consumidor (feriasflow-api). Uma copia identica vive no repositorio do consumidor; os dois lados testam contra o mesmo arquivo.",
+  "type": "object",
+  "required": ["inicio", "fim", "dias_corridos", "dias_uteis", "fins_de_semana", "feriados", "fonte_nacional"],
+  "properties": {
+    "inicio": { "type": "string", "format": "date" },
+    "fim": { "type": "string", "format": "date" },
+    "dias_corridos": { "type": "integer", "minimum": 1 },
+    "dias_uteis": { "type": "integer", "minimum": 0 },
+    "fins_de_semana": { "type": "integer", "minimum": 0 },
+    "feriados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["data", "nome", "origem"],
+        "properties": {
+          "data": { "type": "string", "format": "date" },
+          "nome": { "type": "string", "minLength": 1 },
+          "origem": { "type": "string", "enum": ["nacional", "municipal", "estadual", "empresa"] }
+        }
+      }
+    },
+    "fonte_nacional": { "type": "string", "enum": ["brasilapi", "cache", "indisponivel"] },
+    "aviso": { "type": ["string", "null"] }
+  }
+}
