@@ -1,0 +1,10 @@
+# Override para desenvolvimento: constroi a API secundaria a partir do clone local ao lado.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+
+services:
+  calendario-api:
+    image: feriasflow-calendario-api:local
+    pull_policy: build
+    build:
+      context: ${CALENDARIO_BUILD_CONTEXT:-../feriasflow-calendario-api}

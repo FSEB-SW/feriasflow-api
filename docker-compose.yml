@@ -2,18 +2,20 @@
 #
 #   docker compose up --build
 #
-# A API secundaria e construida direto do repositorio dela no GitHub (contexto git), entao nao e
-# preciso clonar nada alem deste repositorio. Para usar um clone local da secundaria
-# (por exemplo, ao desenvolver os dois lados), exporte CALENDARIO_BUILD_CONTEXT=../feriasflow-calendario-api
+# A API secundaria NAO e construida aqui: o pipeline dela (GitHub Actions) publica a imagem no
+# GitHub Container Registry a cada merge na main, e este compose so a puxa. E o mesmo fluxo de
+# um ambiente real: quem consome um servico usa o artefato publicado, nao o codigo-fonte.
+#
+# Para construir a secundaria a partir de um clone local (desenvolvendo os dois lados):
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 #
 #   principal  -> http://localhost:8000/docs
 #   secundaria -> http://localhost:8001/docs
 
 services:
   calendario-api:
-    build:
-      context: ${CALENDARIO_BUILD_CONTEXT:-https://github.com/FSEB-SW/feriasflow-calendario-api.git#main}
-    image: feriasflow-calendario-api:local
+    image: ghcr.io/fseb-sw/feriasflow-calendario-api:latest
+    pull_policy: always
     container_name: feriasflow-calendario-api
     ports:
       - "8001:8000"

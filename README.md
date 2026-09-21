@@ -86,10 +86,14 @@ stateDiagram-v2
 6. **SQLite por servico, SQLAlchemy 2 e FastAPI.** Persistencia simples e suficiente para o MVP,
    com o ORM isolando o banco (trocar por PostgreSQL e trocar a `DATABASE_URL`). FastAPI da o
    OpenAPI/Swagger e a validacao Pydantic de graca.
-7. **Docker + pipeline.** Cada servico tem Dockerfile (imagem slim, usuario sem privilegio,
-   `HEALTHCHECK`) e um workflow que roda testes, constroi a imagem e faz smoke test no `/health`.
-   O `docker-compose.yml` fica so aqui (raiz da principal) e constroi a secundaria direto do
-   repositorio dela no GitHub.
+7. **Docker + pipeline + registro de imagens.** Cada servico tem Dockerfile (imagem slim,
+   usuario sem privilegio, `HEALTHCHECK`) e um workflow que roda testes, constroi a imagem e faz
+   smoke test no `/health`. O pipeline da secundaria ainda **publica a imagem** no GitHub
+   Container Registry a cada merge na `main`; o `docker-compose.yml` (so aqui, na raiz da
+   principal) consome esse artefato publicado em vez de construir o codigo do outro servico.
+   E o que a disciplina de DevOps chama de pipeline de implantacao: o consumidor usa o artefato
+   versionado, nao o fonte. Para desenvolver os dois lados, o `docker-compose.local.yml` troca a
+   imagem publicada pelo clone local.
 
 ## Regras de negocio do pedido
 
@@ -145,9 +149,13 @@ docker compose up --build
 - API principal: <http://localhost:8000/docs>
 - API secundaria: <http://localhost:8001/docs>
 
-A secundaria e construida a partir do repositorio dela no GitHub. Para usar um clone local
-(desenvolvendo os dois lados), exporte `CALENDARIO_BUILD_CONTEXT=../feriasflow-calendario-api`
-antes do `docker compose up`.
+A imagem da secundaria (`ghcr.io/fseb-sw/feriasflow-calendario-api:latest`) e publicada pelo
+pipeline dela e puxada aqui; so a principal e construida localmente. Para construir a
+secundaria a partir de um clone local ao lado (`../feriasflow-calendario-api`):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+```
 
 Sem Docker (Python 3.12), com a secundaria ja rodando na porta 8001:
 
@@ -199,5 +207,6 @@ app/
 contratos/         dias-uteis.schema.json (copia identica no produtor)
 tests/             pytest (dubla do calendario, sem rede)
 Dockerfile         imagem python:3.12-slim, usuario sem privilegio, HEALTHCHECK
-docker-compose.yml principal + secundaria
+docker-compose.yml principal (build local) + secundaria (imagem publicada no GHCR)
+docker-compose.local.yml  override: secundaria construida do clone local
 ```
